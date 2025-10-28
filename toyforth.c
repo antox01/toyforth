@@ -340,6 +340,28 @@ TFSYMOP_FUNCTIONS(ifOperation) {
     derefObject(then);
 }
 
+TFSYMOP_FUNCTIONS(ifelseOperation) {
+    tfobj *objElse = listPopObject(ctx->stack);
+    tfobj *objThen = listPopObject(ctx->stack);
+    tfobj *objCond = listPopObject(ctx->stack);
+
+    if(objCond->type == TFOBJ_TYPE_LIST) {
+        evalList(ctx, objCond);
+        derefObject(objCond);
+        objCond = listPopObject(ctx->stack);
+    }
+
+    assert(objCond->type == TFOBJ_TYPE_BOOL && "ERROR: if condition does not result in a boolean type");
+    assert(objThen->type == TFOBJ_TYPE_LIST && "ERROR: then branch is not a list type");
+    assert(objElse->type == TFOBJ_TYPE_LIST && "ERROR: else branch is not a list type");
+    if(objCond->i) evalList(ctx, objThen);
+    else           evalList(ctx, objElse);
+
+    derefObject(objCond);
+    derefObject(objThen);
+    derefObject(objElse);
+}
+
 TFSYMOP_FUNCTIONS(dupOperation) {
     tfobj *obj = listPopObject(ctx->stack);
 
@@ -406,19 +428,20 @@ struct {
 
     tfsymop_function *func;
 } tfsymop[] = {
-    { .str = "+",     .len = 1, addOperation},
-    { .str = "-",     .len = 1, subOperation},
-    { .str = "*",     .len = 1, mulOperation},
-    { .str = "/",     .len = 1, divOperation},
-    { .str = "<",     .len = 1, lessOperation},
-    { .str = ">",     .len = 1, greaterOperation},
-    { .str = "if",    .len = 2, ifOperation},
-    { .str = "dup",   .len = 3, dupOperation},
-    { .str = "rot",   .len = 3, rotOperation},
-    { .str = "over",  .len = 4, overOperation},
-    { .str = "swap",  .len = 4, swapOperation},
-    { .str = "drop",  .len = 4, dropOperation},
-    { .str = "print", .len = 5, printOperation},
+    { .str = "+",      .len = 1, addOperation},
+    { .str = "-",      .len = 1, subOperation},
+    { .str = "*",      .len = 1, mulOperation},
+    { .str = "/",      .len = 1, divOperation},
+    { .str = "<",      .len = 1, lessOperation},
+    { .str = ">",      .len = 1, greaterOperation},
+    { .str = "ifelse", .len = 6, ifelseOperation},
+    { .str = "print",  .len = 5, printOperation},
+    { .str = "over",   .len = 4, overOperation},
+    { .str = "swap",   .len = 4, swapOperation},
+    { .str = "drop",   .len = 4, dropOperation},
+    { .str = "dup",    .len = 3, dupOperation},
+    { .str = "rot",    .len = 3, rotOperation},
+    { .str = "if",     .len = 2, ifOperation},
 };
 
 tfsymop_function* searchSymbolOperation(tfobj *obj) {

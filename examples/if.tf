@@ -3,9 +3,10 @@
 if
 
 [ 1 2 > ]
+[ 3 print ]
 [ 4 print ]
-if
+ifelse
 
 [ 3 2 > ]
-[ 5 print ]
+[ 6 print ]
 if
